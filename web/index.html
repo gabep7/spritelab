@@ -13,14 +13,14 @@
       <img class="brand-logo" src="/assets/logo-mark-128.png" alt="">
       <span>SPRITELAB</span>
     </a>
-    <div class="model-badge"><span></span> GBA LORA V17</div>
+    <div class="model-badge"><span></span> SDXL + PIXEL ART XL</div>
   </header>
 
   <main>
     <section class="intro" aria-labelledby="page-title">
-      <p class="eyebrow">LOCAL PIXEL SYNTHESIS</p>
+      <p class="eyebrow">GPU PIXEL SYNTHESIS</p>
       <h1 id="page-title">Describe it.<br><em>Make it playable.</em></h1>
-      <p class="lede">Generate isolated GBA-style sprites with the locally trained v17 adapter. Your prompt and image stay on this machine.</p>
+      <p class="lede">Generate isolated pixel-art sprites with SDXL, then export a cropped transparent PNG ready for your game.</p>
     </section>
 
     <section class="workspace">
@@ -49,12 +49,19 @@
             </div>
           </div>
           <div>
-            <label for="steps">Steps</label>
-            <input id="steps" name="steps" type="number" min="5" max="50" value="40">
+            <label for="mode">Mode</label>
+            <select id="mode" name="mode">
+              <option value="quality">Quality / 30 steps</option>
+              <option value="fast">Fast / 8 steps</option>
+            </select>
           </div>
           <div>
-            <label for="guidance">Guidance</label>
-            <input id="guidance" name="guidance" type="number" min="1" max="15" step="0.5" value="7.5">
+            <label for="size">Export</label>
+            <select id="size" name="size">
+              <option value="128">128 × 128</option>
+              <option value="96">96 × 96</option>
+              <option value="64">64 × 64</option>
+            </select>
           </div>
         </div>
 
@@ -62,7 +69,7 @@
           <span>GENERATE SPRITE</span>
           <span aria-hidden="true">→</span>
         </button>
-        <p id="status" class="status" role="status">Model loads on the first generation.</p>
+        <p id="status" class="status" role="status">The SDXL model loads on the first generation.</p>
       </form>
 
       <section class="output-panel" aria-labelledby="output-title">
@@ -75,7 +82,7 @@
           <div id="placeholder" class="placeholder">
             <span class="placeholder-sprite" aria-hidden="true"></span>
             <strong>READY FOR INPUT</strong>
-            <small>256 × 256 PNG</small>
+            <small>TRANSPARENT PNG</small>
           </div>
           <img id="result-image" alt="Generated sprite" hidden>
           <div id="loader" class="loader" hidden>
@@ -92,15 +99,15 @@
         </div>
         <dl class="output-meta">
           <div><dt>ENGINE</dt><dd id="device">NOT LOADED</dd></div>
-          <div><dt>MODEL</dt><dd>SD 1.5 + V17</dd></div>
-          <div><dt>PALETTE</dt><dd>32 COLORS</dd></div>
+          <div><dt>MODEL</dt><dd>SDXL + PIXEL XL</dd></div>
+          <div><dt>EXPORT</dt><dd id="export-size">128 × 128</dd></div>
         </dl>
       </section>
     </section>
   </main>
 
   <footer>
-    <span>SPRITELAB / LOCAL BUILD</span>
+    <span>SPRITELAB / GPU BUILD</span>
     <span>MODEL OUTPUT REQUIRES REVIEW</span>
   </footer>
   <script src="/static/app.js" defer></script>

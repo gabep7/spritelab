@@ -54,9 +54,9 @@ https://www.kaggle.com/code/gabrielep09/spritelab-sdxl-benchmark
 
 The full 24-image evaluation is in `kaggle_sdxl/benchmark.py`. To run it, change `code_file` in `kaggle_sdxl/kernel-metadata.json` to `benchmark.py` before pushing.
 
-## Local prototype
+## Local web app
 
-The local FastAPI interface is a working prototype, but it still uses the legacy SD 1.5 LoRA by default.
+The local FastAPI interface runs the selected SDXL pipeline with transparent sprite export. A CUDA GPU with at least 8 GB VRAM is recommended. On machines with less VRAM, set `SPRITELAB_CPU_OFFLOAD=1` to enable model CPU offloading.
 
 Install dependencies:
 
@@ -77,7 +77,7 @@ Open `http://127.0.0.1:8000`.
 ```text
 app.py                         Local FastAPI service
 web/                           Local browser interface
-scripts/generate_sprite.py     Local SD 1.5 generator
+scripts/generate_sprite.py     SDXL pipeline and transparent sprite export
 scripts/01_scrape_sprites.py   Sprite sheet scraper
 scripts/02_process_sprites.py  Dataset cleaner and balancer
 scripts/sprite_rules.py        Shared dataset filtering rules

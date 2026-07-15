@@ -1,8 +1,8 @@
 const form = document.querySelector('#generator-form');
 const promptInput = document.querySelector('#prompt');
 const seedInput = document.querySelector('#seed');
-const stepsInput = document.querySelector('#steps');
-const guidanceInput = document.querySelector('#guidance');
+const modeInput = document.querySelector('#mode');
+const sizeInput = document.querySelector('#size');
 const generateButton = document.querySelector('#generate');
 const statusText = document.querySelector('#status');
 const placeholder = document.querySelector('#placeholder');
@@ -12,15 +12,15 @@ const processedButton = document.querySelector('#processed-view');
 const rawButton = document.querySelector('#raw-view');
 const download = document.querySelector('#download');
 const device = document.querySelector('#device');
+const exportSize = document.querySelector('#export-size');
 
 let processedUrl = '';
+let spriteUrl = '';
 let rawUrl = '';
 
 function setView(view) {
   const raw = view === 'raw';
   image.src = raw ? rawUrl : processedUrl;
-  download.href = image.src;
-  download.download = raw ? 'spritelab_raw.png' : 'spritelab_sprite.png';
   processedButton.classList.toggle('active', !raw);
   rawButton.classList.toggle('active', raw);
 }
@@ -32,7 +32,7 @@ function setBusy(busy) {
     placeholder.hidden = true;
     image.hidden = true;
     statusText.classList.remove('error');
-    statusText.textContent = 'Rendering locally. First generation also loads the model.';
+    statusText.textContent = 'Rendering on the GPU. First generation also loads SDXL.';
   }
 }
 
@@ -60,8 +60,8 @@ form.addEventListener('submit', async (event) => {
       body: JSON.stringify({
         prompt: promptInput.value.trim(),
         seed: Number(seedInput.value),
-        steps: Number(stepsInput.value),
-        guidance: Number(guidanceInput.value),
+        mode: modeInput.value,
+        size: Number(sizeInput.value),
       }),
     });
     if (!response.ok) {
@@ -69,13 +69,17 @@ form.addEventListener('submit', async (event) => {
     }
     const result = await response.json();
     processedUrl = result.image_url;
+    spriteUrl = result.sprite_url;
     rawUrl = result.raw_url;
+    download.href = spriteUrl;
+    download.download = `spritelab_${result.size}px.png`;
     setView('processed');
     image.hidden = false;
     download.classList.remove('disabled');
     download.removeAttribute('aria-disabled');
     device.textContent = result.device.toUpperCase();
-    statusText.textContent = `Complete. Seed ${result.seed}.`;
+    exportSize.textContent = `${result.size} × ${result.size}`;
+    statusText.textContent = `Complete. ${result.mode} mode, seed ${result.seed}.`;
   } catch (error) {
     placeholder.hidden = false;
     statusText.classList.add('error');

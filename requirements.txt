@@ -1,9 +1,8 @@
-accelerate==1.14.0
-diffusers==0.37.0
+accelerate>=1.0
+diffusers>=0.37
 fastapi>=0.115
-peft==0.19.1
 Pillow>=11.0
 safetensors>=0.8
-torch>=2.12
-transformers>=5.0
+torch>=2.10
+transformers>=4.45
 uvicorn[standard]>=0.34

@@ -23,7 +23,7 @@ body {
   font-family: "Courier New", Courier, monospace;
 }
 
-button, input, textarea { font: inherit; }
+button, input, textarea, select { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 
 .site-header {
@@ -82,7 +82,7 @@ h1 em { color: var(--orange); font-style: normal; }
 .panel-heading span { display: grid; place-items: center; width: 30px; height: 30px; color: white; background: var(--ink); font-size: 11px; }
 h2 { margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 18px; text-transform: uppercase; letter-spacing: 0.02em; }
 label { display: block; margin-bottom: 9px; font-size: 11px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
-textarea, input {
+textarea, input, select {
   width: 100%;
   border: 2px solid var(--line);
   border-radius: 0;
@@ -91,8 +91,8 @@ textarea, input {
   outline: none;
 }
 textarea { resize: vertical; min-height: 116px; padding: 15px; font-size: 15px; line-height: 1.5; }
-input { height: 44px; padding: 0 12px; }
-textarea:focus, input:focus { box-shadow: 4px 4px 0 var(--blue); }
+input, select { height: 44px; padding: 0 12px; }
+textarea:focus, input:focus, select:focus { box-shadow: 4px 4px 0 var(--blue); }
 
 .presets { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0 30px; }
 .presets button, .view-switch button, .seed-control button {
