@@ -47,11 +47,11 @@ button, a { -webkit-tap-highlight-color: transparent; }
   font-size: 18px;
 }
 
-.brand-mark {
-  width: 20px;
-  height: 20px;
-  background: var(--orange);
-  box-shadow: 6px 0 0 var(--ink), 0 6px 0 var(--ink), 6px 6px 0 var(--blue);
+.brand-logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  image-rendering: pixelated;
 }
 
 .model-badge {

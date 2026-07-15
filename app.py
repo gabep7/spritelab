@@ -13,6 +13,7 @@ from scripts.generate_sprite import DEFAULT_LORA, DEFAULT_MODEL, generate_image,
 
 ROOT = Path(__file__).resolve().parent
 WEB_DIR = ROOT / "web"
+ASSETS_DIR = ROOT / "assets"
 GENERATED_DIR = ROOT / "generated"
 GENERATED_DIR.mkdir(exist_ok=True)
 
@@ -52,6 +53,7 @@ class GeneratorRuntime:
 runtime = GeneratorRuntime()
 app = FastAPI(title="Spritelab")
 app.mount("/static", StaticFiles(directory=WEB_DIR, check_dir=False), name="static")
+app.mount("/assets", StaticFiles(directory=ASSETS_DIR, check_dir=False), name="assets")
 app.mount("/generated", StaticFiles(directory=GENERATED_DIR), name="generated")
 
 

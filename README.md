@@ -1,5 +1,9 @@
 # Spritelab
 
+<p align="center">
+  <img src="assets/logo-lockup.png" alt="Spritelab" width="640">
+</p>
+
 Spritelab is an experimental pixel art sprite generator built around Stable Diffusion XL and the Pixel Art XL adapter. The selected workflow runs on a Kaggle Tesla T4 and generates isolated game assets from text prompts.
 
 ## Current model path
@@ -13,6 +17,14 @@ The selected pipeline is:
 - Nearest neighbor downscaling to 128 by 128
 
 The SDXL benchmark produced recognizable dragons, mages, knights, archers, slimes, robots, treasure chests, swords, airships, towers, potions, and dogs. It used less than 6 GB of GPU memory on a Kaggle T4.
+
+## Generated showcase
+
+<p align="center">
+  <img src="assets/showcase-grid.png" alt="Spritelab generated sprite examples" width="900">
+</p>
+
+The logo mark and every image above were generated with the Spritelab SDXL workflow. The selected examples include a dragon, skeleton knight, forest witch, robot, crowned slime, fantasy airship, magic potion, and treasure chest.
 
 The earlier SD 1.5 LoRA remains in the repository for reference, but it is not the selected model. Its prompt control and composition quality are not good enough.
 
@@ -70,7 +82,9 @@ scripts/01_scrape_sprites.py   Sprite sheet scraper
 scripts/02_process_sprites.py  Dataset cleaner and balancer
 scripts/sprite_rules.py        Shared dataset filtering rules
 kaggle_sdxl/                   Selected SDXL Kaggle workflow
+assets/                        Logo and generated showcase images
 kaggle_flux/                   Rejected FLUX benchmark
+kaggle_sdxl/showcase.py        Logo and showcase generation script
 kaggle_notebook/               Legacy SD 1.5 LoRA training
 ```
 
