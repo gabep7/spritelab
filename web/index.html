@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spritelab</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Spritelab home">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>SPRITELAB</span>
+    </a>
+    <div class="model-badge"><span></span> GBA LORA V17</div>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">LOCAL PIXEL SYNTHESIS</p>
+      <h1 id="page-title">Describe it.<br><em>Make it playable.</em></h1>
+      <p class="lede">Generate isolated GBA-style sprites with the locally trained v17 adapter. Your prompt and image stay on this machine.</p>
+    </section>
+
+    <section class="workspace">
+      <form id="generator-form" class="control-panel">
+        <div class="panel-heading">
+          <span>01</span>
+          <h2>Sprite brief</h2>
+        </div>
+
+        <label for="prompt">What should we draw?</label>
+        <textarea id="prompt" name="prompt" rows="4" maxlength="300" required>blue dragon with silver horns</textarea>
+
+        <div class="presets" aria-label="Prompt presets">
+          <button type="button" data-prompt="fire mage holding a staff">FIRE MAGE</button>
+          <button type="button" data-prompt="armored knight with a sword">KNIGHT</button>
+          <button type="button" data-prompt="wooden treasure chest with gold trim">CHEST</button>
+          <button type="button" data-prompt="small brown dog">DOG</button>
+        </div>
+
+        <div class="settings-grid">
+          <div>
+            <label for="seed">Seed</label>
+            <div class="seed-control">
+              <input id="seed" name="seed" type="number" min="0" max="4294967295" value="42">
+              <button id="random-seed" type="button" aria-label="Randomize seed">RND</button>
+            </div>
+          </div>
+          <div>
+            <label for="steps">Steps</label>
+            <input id="steps" name="steps" type="number" min="5" max="50" value="40">
+          </div>
+          <div>
+            <label for="guidance">Guidance</label>
+            <input id="guidance" name="guidance" type="number" min="1" max="15" step="0.5" value="7.5">
+          </div>
+        </div>
+
+        <button id="generate" class="generate-button" type="submit">
+          <span>GENERATE SPRITE</span>
+          <span aria-hidden="true">→</span>
+        </button>
+        <p id="status" class="status" role="status">Model loads on the first generation.</p>
+      </form>
+
+      <section class="output-panel" aria-labelledby="output-title">
+        <div class="panel-heading">
+          <span>02</span>
+          <h2 id="output-title">Output</h2>
+        </div>
+        <div class="canvas-frame">
+          <div class="canvas-grid" aria-hidden="true"></div>
+          <div id="placeholder" class="placeholder">
+            <span class="placeholder-sprite" aria-hidden="true"></span>
+            <strong>READY FOR INPUT</strong>
+            <small>256 × 256 PNG</small>
+          </div>
+          <img id="result-image" alt="Generated sprite" hidden>
+          <div id="loader" class="loader" hidden>
+            <span></span><span></span><span></span><span></span>
+            <strong>RENDERING</strong>
+          </div>
+        </div>
+        <div class="output-actions">
+          <div class="view-switch" aria-label="Image view">
+            <button id="processed-view" type="button" class="active">PIXEL</button>
+            <button id="raw-view" type="button">RAW</button>
+          </div>
+          <a id="download" class="download-link disabled" aria-disabled="true">DOWNLOAD PNG</a>
+        </div>
+        <dl class="output-meta">
+          <div><dt>ENGINE</dt><dd id="device">NOT LOADED</dd></div>
+          <div><dt>MODEL</dt><dd>SD 1.5 + V17</dd></div>
+          <div><dt>PALETTE</dt><dd>32 COLORS</dd></div>
+        </dl>
+      </section>
+    </section>
+  </main>
+
+  <footer>
+    <span>SPRITELAB / LOCAL BUILD</span>
+    <span>MODEL OUTPUT REQUIRES REVIEW</span>
+  </footer>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
