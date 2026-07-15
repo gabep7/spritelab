@@ -4,7 +4,7 @@
   <img src="assets/logo-lockup.png" alt="Spritelab" width="640">
 </p>
 
-Spritelab is an experimental pixel art sprite generator built around Stable Diffusion XL and the Pixel Art XL adapter. The selected workflow runs on a Kaggle Tesla T4 and generates isolated game assets from text prompts.
+Spritelab is an experimental pixel art sprite generator built around Stable Diffusion XL and the Pixel Art XL adapter. The selected path is local GPU generation with transparent sprite export. Kaggle remains available for batch jobs on a Tesla T4.
 
 ## Current model path
 
@@ -14,9 +14,9 @@ The selected pipeline is:
 - Pixel Art XL
 - Optional LCM adapter for eight step generation
 - 1024 by 1024 generation
-- Nearest neighbor downscaling to 128 by 128
+- Transparent crop and nearest neighbor export at 64, 96, or 128
 
-The SDXL benchmark produced recognizable dragons, mages, knights, archers, slimes, robots, treasure chests, swords, airships, towers, potions, and dogs. It used less than 6 GB of GPU memory on a Kaggle T4.
+The SDXL workflow produces recognizable dragons, mages, knights, archers, slimes, robots, treasure chests, swords, airships, towers, potions, and dogs. Quality mode peaks around 5.5 GB VRAM on a Kaggle T4.
 
 ## Generated showcase
 
@@ -26,37 +26,16 @@ The SDXL benchmark produced recognizable dragons, mages, knights, archers, slime
 
 The logo mark and every image above were generated with the Spritelab SDXL workflow. The selected examples include a dragon, skeleton knight, forest witch, robot, crowned slime, fantasy airship, magic potion, and treasure chest.
 
-The earlier SD 1.5 LoRA remains in the repository for reference, but it is not the selected model. Its prompt control and composition quality are not good enough.
-
-## Kaggle generator
-
-The current Kaggle script is in `kaggle_sdxl/dragon_followup.py`.
-
-Edit the `PROMPT` value:
-
-```python
-PROMPT = (
-    "pixel art, full-body black dragon in side profile facing right, "
-    "mouth wide open, actively exhaling bright cyan-blue flames, "
-    "isolated game sprite, plain white background"
-)
-```
-
-Then push the kernel:
-
-```bash
-python3 -m kaggle kernels push -p kaggle_sdxl
-```
-
-Kaggle kernel:
-
-https://www.kaggle.com/code/gabrielep09/spritelab-sdxl-benchmark
-
-The full 24-image evaluation is in `kaggle_sdxl/benchmark.py`. To run it, change `code_file` in `kaggle_sdxl/kernel-metadata.json` to `benchmark.py` before pushing.
+The earlier SD 1.5 LoRA remains only as a historical baseline. It is not the selected model.
 
 ## Local web app
 
-The local FastAPI interface runs the selected SDXL pipeline with transparent sprite export. A CUDA GPU with at least 8 GB VRAM is recommended. On machines with less VRAM, set `SPRITELAB_CPU_OFFLOAD=1` to enable model CPU offloading.
+The FastAPI app runs the selected SDXL pipeline and exports cropped transparent PNGs.
+
+Requirements:
+
+- CUDA GPU with about 8 GB VRAM recommended
+- On lower VRAM machines set `SPRITELAB_CPU_OFFLOAD=1`
 
 Install dependencies:
 
@@ -72,20 +51,47 @@ python3 -m uvicorn app:app --host 127.0.0.1 --port 8000
 
 Open `http://127.0.0.1:8000`.
 
+CLI generation:
+
+```bash
+python3 -m scripts.generate_sprite "blue slime with a gold crown" --mode quality --size 128
+```
+
+## Kaggle batch generator
+
+The multi-prompt batch script is `kaggle_sdxl/generate.py`.
+
+Edit `JOBS`, `MODE`, `SEEDS`, and `EXPORT_SIZE`, then push:
+
+```bash
+python3 -m kaggle kernels push -p kaggle_sdxl
+```
+
+Kernel:
+
+https://www.kaggle.com/code/gabrielep09/spritelab-sdxl-benchmark
+
+Pinned Kaggle package versions live in `requirements-kaggle.txt`.
+
+Related scripts:
+
+- `kaggle_sdxl/benchmark.py` full 24 image evaluation
+- `kaggle_sdxl/showcase.py` logo and marketing asset generation
+- `kaggle_sdxl/sprite_export.py` transparent crop helper used by the batch generator
+
 ## Project structure
 
 ```text
 app.py                         Local FastAPI service
 web/                           Local browser interface
-scripts/generate_sprite.py     SDXL pipeline and transparent sprite export
-scripts/01_scrape_sprites.py   Sprite sheet scraper
-scripts/02_process_sprites.py  Dataset cleaner and balancer
-scripts/sprite_rules.py        Shared dataset filtering rules
-kaggle_sdxl/                   Selected SDXL Kaggle workflow
-assets/                        Logo and generated showcase images
-kaggle_flux/                   Rejected FLUX benchmark
-kaggle_sdxl/showcase.py        Logo and showcase generation script
+scripts/generate_sprite.py     SDXL pipeline
+scripts/sprite_export.py       Transparent crop and export
+scripts/prompt_templates.py    Shared prompts and presets
+kaggle_sdxl/                   Batch and benchmark scripts
+assets/                        Logo and showcase images
+tests/                         Unit tests for export and prompts
 kaggle_notebook/               Legacy SD 1.5 LoRA training
+kaggle_flux/                   Rejected FLUX benchmark
 ```
 
 ## Benchmark findings

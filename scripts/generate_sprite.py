@@ -4,16 +4,14 @@ from pathlib import Path
 
 import torch
 from diffusers import DPMSolverMultistepScheduler, LCMScheduler, StableDiffusionXLPipeline
-from PIL import Image, ImageDraw
+
+from scripts.prompt_templates import NEGATIVE_PROMPT, build_prompt
+from scripts.sprite_export import save_sprite_outputs
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_MODEL = "stabilityai/stable-diffusion-xl-base-1.0"
 DEFAULT_PIXEL_LORA = "nerijs/pixel-art-xl"
 DEFAULT_LCM_LORA = "latent-consistency/lcm-lora-sdxl"
-NEGATIVE_PROMPT = (
-    "3d render, realistic, photograph, blurry, smooth shading, text, words, letters, "
-    "watermark, signature, scenery, complex background, cropped, multiple objects"
-)
 
 
 def runtime_device():
@@ -62,7 +60,7 @@ def load_pipeline(
     return pipeline, device
 
 
-def generate_image(pipeline, device, description, seed=42, mode="quality"):
+def generate_image(pipeline, device, description, seed=42, mode="quality", category=None):
     if mode == "fast":
         pipeline.scheduler = pipeline.fast_scheduler
         pipeline.set_adapters(["lcm", "pixel"], adapter_weights=[1.0, 1.2])
@@ -76,10 +74,7 @@ def generate_image(pipeline, device, description, seed=42, mode="quality"):
     else:
         raise ValueError(f"Unknown generation mode: {mode}")
 
-    prompt = (
-        f"pixel art, {description}, full object visible, isolated game sprite, "
-        "plain white background"
-    )
+    prompt = build_prompt(description, category=category)
     generator_device = "cuda" if device == "cuda" else "cpu"
     return pipeline(
         prompt=prompt,
@@ -92,69 +87,29 @@ def generate_image(pipeline, device, description, seed=42, mode="quality"):
     ).images[0]
 
 
-def extract_sprite(image, size=128):
-    source = image.convert("RGB")
-    background = source.copy()
-    marker = (254, 1, 253)
-    corners = [
-        (0, 0),
-        (background.width - 1, 0),
-        (0, background.height - 1),
-        (background.width - 1, background.height - 1),
-    ]
-    for corner in corners:
-        if background.getpixel(corner) != marker:
-            ImageDraw.floodfill(background, corner, marker, thresh=40)
-
-    rgba = source.convert("RGBA")
-    alpha = Image.new("L", source.size, 255)
-    alpha.putdata([0 if pixel == marker else 255 for pixel in background.getdata()])
-    rgba.putalpha(alpha)
-    content_box = alpha.getbbox()
-    if content_box is None:
-        raise RuntimeError("Generated image contains no foreground")
-
-    content = rgba.crop(content_box)
-    content_limit = round(size * 0.82)
-    scale = min(content_limit / content.width, content_limit / content.height)
-    resized = content.resize(
-        (max(1, round(content.width * scale)), max(1, round(content.height * scale))),
-        Image.Resampling.NEAREST,
-    )
-    sprite = Image.new("RGBA", (size, size), (255, 255, 255, 0))
-    sprite.alpha_composite(
-        resized,
-        ((size - resized.width) // 2, (size - resized.height) // 2),
-    )
-    return sprite
-
-
 def save_outputs(image, output, size=128):
-    output.parent.mkdir(parents=True, exist_ok=True)
-    raw_output = output.with_name(f"{output.stem}_raw.png")
-    preview_output = output.with_name(f"{output.stem}_preview.png")
-    image.save(raw_output)
-    sprite = extract_sprite(image, size)
-    sprite.save(output)
-    sprite.resize((512, 512), Image.Resampling.NEAREST).save(preview_output)
-    return {
-        "sprite": output,
-        "preview": preview_output,
-        "raw": raw_output,
-    }
+    return save_sprite_outputs(image, output, size=size)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("prompt")
     parser.add_argument("--mode", choices=["fast", "quality"], default="quality")
+    parser.add_argument("--category", choices=["character", "creature", "weapon", "item", "building", "vehicle", "effect"])
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--size", type=int, choices=[64, 96, 128], default=128)
     parser.add_argument("--output", type=Path, default=ROOT / "generated_sprite.png")
     args = parser.parse_args()
 
     pipeline, device = load_pipeline()
-    image = generate_image(pipeline, device, args.prompt, args.seed, args.mode)
+    image = generate_image(
+        pipeline,
+        device,
+        args.prompt,
+        seed=args.seed,
+        mode=args.mode,
+        category=args.category,
+    )
     outputs = save_outputs(image, args.output, args.size)
     print(
         f"Saved {outputs['sprite']}, {outputs['preview']}, and {outputs['raw']} on {device}"

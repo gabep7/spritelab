@@ -3,9 +3,9 @@ import os
 import threading
 import time
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Optional
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -18,6 +18,7 @@ from scripts.generate_sprite import (
     load_pipeline,
     save_outputs,
 )
+from scripts.prompt_templates import PRESETS
 
 ROOT = Path(__file__).resolve().parent
 WEB_DIR = ROOT / "web"
@@ -31,6 +32,9 @@ class GenerateRequest(BaseModel):
     seed: int = Field(default=42, ge=0, le=4_294_967_295)
     mode: Literal["fast", "quality"] = "quality"
     size: Literal[64, 96, 128] = 128
+    category: Optional[
+        Literal["character", "creature", "weapon", "item", "building", "vehicle", "effect"]
+    ] = None
 
 
 class GeneratorRuntime:
@@ -53,6 +57,7 @@ class GeneratorRuntime:
                 request.prompt,
                 request.seed,
                 request.mode,
+                category=request.category,
             )
             outputs = save_outputs(
                 image,
@@ -83,9 +88,18 @@ def health():
     }
 
 
+@app.get("/api/presets")
+def presets():
+    return {"presets": PRESETS}
+
+
 @app.post("/api/generate")
 async def generate(request: GenerateRequest):
-    outputs, device = await asyncio.to_thread(runtime.generate, request)
+    try:
+        outputs, device = await asyncio.to_thread(runtime.generate, request)
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=str(error)) from error
+
     version = time.time_ns()
     return {
         "image_url": f"/generated/{outputs['preview'].name}?v={version}",
@@ -95,4 +109,5 @@ async def generate(request: GenerateRequest):
         "mode": request.mode,
         "seed": request.seed,
         "size": request.size,
+        "category": request.category,
     }

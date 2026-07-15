@@ -13,6 +13,7 @@ const rawButton = document.querySelector('#raw-view');
 const download = document.querySelector('#download');
 const device = document.querySelector('#device');
 const exportSize = document.querySelector('#export-size');
+let activeCategory = null;
 
 let processedUrl = '';
 let spriteUrl = '';
@@ -39,6 +40,7 @@ function setBusy(busy) {
 document.querySelectorAll('[data-prompt]').forEach((button) => {
   button.addEventListener('click', () => {
     promptInput.value = button.dataset.prompt;
+    activeCategory = button.dataset.category || null;
     promptInput.focus();
   });
 });
@@ -62,10 +64,20 @@ form.addEventListener('submit', async (event) => {
         seed: Number(seedInput.value),
         mode: modeInput.value,
         size: Number(sizeInput.value),
+        category: activeCategory,
       }),
     });
     if (!response.ok) {
-      throw new Error(`Generation failed with status ${response.status}`);
+      let detail = `Generation failed with status ${response.status}`;
+      try {
+        const payload = await response.json();
+        if (payload.detail) {
+          detail = typeof payload.detail === 'string' ? payload.detail : JSON.stringify(payload.detail);
+        }
+      } catch (_) {
+        // keep status fallback
+      }
+      throw new Error(detail);
     }
     const result = await response.json();
     processedUrl = result.image_url;
