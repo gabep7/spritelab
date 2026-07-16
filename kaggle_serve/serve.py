@@ -17,7 +17,19 @@ IDLE_MINUTES = 30
 MAX_HOURS = 8
 PORT = 8000
 REPO_URL = "https://github.com/gabep7/spritelab.git"
-NTFY_TOPIC = "REDACTED_NTFY_TOPIC"
+SECRETS_PATH = Path(__file__).with_name("secrets.local")
+NTFY_TOPIC = "spritelab-local"
+ACCESS_TOKEN = ""
+if SECRETS_PATH.exists():
+    for line in SECRETS_PATH.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        if key.strip() == "TOKEN":
+            ACCESS_TOKEN = value.strip()
+        elif key.strip() == "NTFY_TOPIC":
+            NTFY_TOPIC = value.strip()
 WORK = Path("/kaggle/working")
 REPO_DIR = WORK / "spritelab"
 
@@ -61,6 +73,10 @@ _peft_torchao.is_torchao_available = lambda: False
 
 sys.path.insert(0, str(REPO_DIR))
 os.environ.setdefault("SPRITELAB_WARMUP", "1")
+if ACCESS_TOKEN:
+    os.environ["SPRITELAB_TOKEN"] = ACCESS_TOKEN
+else:
+    raise SystemExit("Missing TOKEN in secrets.local. Refusing to start an open server.")
 
 import uvicorn
 from app import app, runtime

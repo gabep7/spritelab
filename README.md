@@ -52,10 +52,16 @@ No local GPU needed. Start a T4-backed session that serves the same web app thro
 
 ```bash
 python3 -m kaggle kernels push -p kaggle_serve
-python3 -m kaggle kernels logs gabrielep09/spritelab-server
 ```
 
-Open the `SPRITELAB URL` printed in the log (a `trycloudflare.com` address). The model loads once per session; after that each sprite takes seconds. The server shuts itself down after 30 minutes without requests so it does not burn GPU quota. Note that anyone with the URL can use the session, so do not share it.
+The server refuses to start without `kaggle_serve/secrets.local` (gitignored) containing:
+
+```text
+TOKEN=your-long-random-token
+NTFY_TOPIC=optional-private-topic
+```
+
+Open the published tunnel as `https://....trycloudflare.com/?token=your-long-random-token`. API and generated files reject requests without that token. The server shuts itself down after 30 minutes without requests so it does not burn GPU quota.
 
 ## Kaggle batch jobs
 

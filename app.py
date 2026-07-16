@@ -29,6 +29,7 @@ ASSETS_DIR = ROOT / "assets"
 GENERATED_DIR = ROOT / "generated"
 GENERATED_DIR.mkdir(exist_ok=True)
 HISTORY_LIMIT = 60
+ACCESS_TOKEN = os.environ.get("SPRITELAB_TOKEN", "").strip()
 
 
 class GenerateRequest(BaseModel):
@@ -141,6 +142,24 @@ async def lifespan(_app):
 
 
 app = FastAPI(title="Spritelab", lifespan=lifespan)
+
+@app.middleware("http")
+async def require_access_token(request, call_next):
+    if not ACCESS_TOKEN:
+        return await call_next(request)
+    path = request.url.path
+    if path.startswith("/api/") or path.startswith("/generated/"):
+        provided = (
+            request.headers.get("x-spritelab-token")
+            or request.cookies.get("spritelab_token")
+            or request.query_params.get("token")
+        )
+        if provided != ACCESS_TOKEN:
+            from fastapi.responses import JSONResponse
+
+            return JSONResponse({"detail": "Unauthorized"}, status_code=401)
+    return await call_next(request)
+
 app.mount("/static", StaticFiles(directory=WEB_DIR, check_dir=False), name="static")
 app.mount("/assets", StaticFiles(directory=ASSETS_DIR, check_dir=False), name="assets")
 app.mount("/generated", StaticFiles(directory=GENERATED_DIR), name="generated")

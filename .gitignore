@@ -13,6 +13,7 @@ venv/
 !.env.example
 .kaggle/
 kaggle.json
+kaggle_serve/secrets.local
 
 # Generated sprites and model artifacts
 generated/

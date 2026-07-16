@@ -25,6 +25,48 @@ let spriteUrl = '';
 let rawUrl = '';
 let progressTimer = null;
 
+(function captureToken() {
+  const params = new URLSearchParams(window.location.search);
+  const fromQuery = params.get('token');
+  if (fromQuery) {
+    sessionStorage.setItem('spritelab_token', fromQuery);
+    params.delete('token');
+    const query = params.toString();
+    const clean = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
+    window.history.replaceState({}, '', clean);
+  }
+})();
+
+function getToken() {
+  return sessionStorage.getItem('spritelab_token') || '';
+}
+
+function authedUrl(url) {
+  if (!url) return url;
+  const token = getToken();
+  if (!token) return url;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}token=${encodeURIComponent(token)}`;
+}
+
+function apiHeaders(extra = {}) {
+  const headers = { ...extra };
+  const token = getToken();
+  if (token) headers['X-Spritelab-Token'] = token;
+  return headers;
+}
+
+async function apiFetch(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: apiHeaders(options.headers || {}),
+  });
+  if (response.status === 401) {
+    throw new Error('Unauthorized. Open the URL with ?token=YOUR_TOKEN once.');
+  }
+  return response;
+}
+
 function setView(view) {
   const raw = view === 'raw';
   image.src = raw ? rawUrl : processedUrl;
@@ -53,7 +95,7 @@ function startProgressPolling() {
   stopProgressPolling();
   progressTimer = setInterval(async () => {
     try {
-      const response = await fetch('/api/progress');
+      const response = await apiFetch('/api/progress');
       if (response.ok) renderProgress(await response.json());
     } catch (_) {
       // transient poll failure, keep last state
@@ -86,9 +128,9 @@ function setBusy(busy) {
 }
 
 function showResult(entry, message) {
-  processedUrl = entry.image_url;
-  spriteUrl = entry.sprite_url;
-  rawUrl = entry.raw_url;
+  processedUrl = authedUrl(entry.image_url);
+  spriteUrl = authedUrl(entry.sprite_url);
+  rawUrl = authedUrl(entry.raw_url);
   download.href = spriteUrl;
   download.download = `spritelab_${entry.size}px.png`;
   setView('processed');
@@ -111,7 +153,7 @@ function renderHistory(entries) {
     button.className = 'history-item';
     button.title = `${entry.prompt} (seed ${entry.seed})`;
     const thumb = document.createElement('img');
-    thumb.src = entry.sprite_url;
+    thumb.src = authedUrl(entry.sprite_url);
     thumb.alt = entry.prompt;
     thumb.loading = 'lazy';
     button.appendChild(thumb);
@@ -129,11 +171,14 @@ function renderHistory(entries) {
 
 async function refreshHistory() {
   try {
-    const response = await fetch('/api/history');
+    const response = await apiFetch('/api/history');
     if (!response.ok) return;
     renderHistory((await response.json()).entries);
-  } catch (_) {
-    // history is best-effort
+  } catch (error) {
+    if (String(error.message).includes('Unauthorized')) {
+      statusText.classList.add('error');
+      statusText.textContent = error.message;
+    }
   }
 }
 
@@ -156,7 +201,7 @@ form.addEventListener('submit', async (event) => {
   event.preventDefault();
   setBusy(true);
   try {
-    const response = await fetch('/api/generate', {
+    const response = await apiFetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -192,9 +237,14 @@ form.addEventListener('submit', async (event) => {
 });
 
 (async () => {
+  if (!getToken() && window.location.hostname.includes('trycloudflare.com')) {
+    statusText.classList.add('error');
+    statusText.textContent = 'This public tunnel needs a token. Open the URL with ?token=...';
+    return;
+  }
   refreshHistory();
   try {
-    const response = await fetch('/api/progress');
+    const response = await apiFetch('/api/progress');
     if (!response.ok) return;
     const state = await response.json();
     if (state.phase === 'loading') {
@@ -202,7 +252,10 @@ form.addEventListener('submit', async (event) => {
     } else if (state.model_loaded) {
       statusText.textContent = 'Model loaded. Ready to generate.';
     }
-  } catch (_) {
-    // keep default status
+  } catch (error) {
+    if (String(error.message).includes('Unauthorized')) {
+      statusText.classList.add('error');
+      statusText.textContent = error.message;
+    }
   }
 })();
