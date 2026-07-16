@@ -17,6 +17,7 @@ IDLE_MINUTES = 30
 MAX_HOURS = 8
 PORT = 8000
 REPO_URL = "https://github.com/gabep7/spritelab.git"
+NTFY_TOPIC = "REDACTED_NTFY_TOPIC"
 WORK = Path("/kaggle/working")
 REPO_DIR = WORK / "spritelab"
 
@@ -80,11 +81,27 @@ def _watchdog():
         time.sleep(60)
         if time.time() - started > MAX_HOURS * 3600:
             print("Max session time reached, shutting down.", flush=True)
+            _notify("stopped: max session time")
             os._exit(0)
         busy = runtime.snapshot()["phase"] != "idle"
         if not busy and time.time() - last_activity > IDLE_MINUTES * 60:
             print(f"No requests for {IDLE_MINUTES} minutes, shutting down.", flush=True)
+            _notify("stopped: idle timeout")
             os._exit(0)
+
+
+def _notify(message):
+    try:
+        urllib.request.urlopen(
+            urllib.request.Request(
+                f"https://ntfy.sh/{NTFY_TOPIC}",
+                data=message.encode(),
+                headers={"Title": "spritelab server"},
+            ),
+            timeout=10,
+        )
+    except OSError as error:
+        print(f"ntfy publish failed: {error}", flush=True)
 
 
 def _tunnel():
@@ -104,6 +121,7 @@ def _tunnel():
             print(f"SPRITELAB URL: {url}", flush=True)
             print(banner, flush=True)
             (WORK / "server_info.json").write_text(json.dumps({"url": url}))
+            _notify(url)
             break
     for _ in process.stdout:
         pass
