@@ -51,17 +51,20 @@ Optional: `SPRITELAB_WARMUP=1` loads the model at startup instead of on the firs
 No local GPU needed. Start a T4-backed session that serves the same web app through a public tunnel:
 
 ```bash
-python3 -m kaggle kernels push -p kaggle_serve
+python3 kaggle_serve/push.py
 ```
 
-The server refuses to start without `kaggle_serve/secrets.local` (gitignored) containing:
+`push.py` reads gitignored `kaggle_serve/secrets.local` and injects values only into the uploaded kernel copy:
 
 ```text
 TOKEN=your-long-random-token
-NTFY_TOPIC=optional-private-topic
+NTFY_TOPIC=your-private-random-topic
 ```
 
-Open the published tunnel as `https://....trycloudflare.com/?token=your-long-random-token`. API and generated files reject requests without that token. The server shuts itself down after 30 minutes without requests so it does not burn GPU quota.
+Poll your private ntfy topic for the tunnel URL, then open:
+`https://....trycloudflare.com/?token=your-long-random-token`
+
+API and generated files reject requests without that token. The server shuts itself down after 30 minutes without requests so it does not burn GPU quota.
 
 ## Kaggle batch jobs
 

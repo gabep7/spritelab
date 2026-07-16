@@ -1,8 +1,7 @@
 """Run the Spritelab web app on a Kaggle T4 behind a cloudflared quick tunnel.
 
-Push with `python3 -m kaggle kernels push -p kaggle_serve`, then grab the
-public URL from the kernel log or /kaggle/working/server_info.json.
-The server exits on its own after IDLE_MINUTES without requests.
+Push with `python3 kaggle_serve/push.py` so secrets are injected at push time
+and never committed. The server exits after IDLE_MINUTES without requests.
 """
 
 import json
@@ -17,21 +16,16 @@ IDLE_MINUTES = 30
 MAX_HOURS = 8
 PORT = 8000
 REPO_URL = "https://github.com/gabep7/spritelab.git"
-SECRETS_PATH = Path(__file__).with_name("secrets.local")
-NTFY_TOPIC = "spritelab-local"
-ACCESS_TOKEN = ""
-if SECRETS_PATH.exists():
-    for line in SECRETS_PATH.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        if key.strip() == "TOKEN":
-            ACCESS_TOKEN = value.strip()
-        elif key.strip() == "NTFY_TOPIC":
-            NTFY_TOPIC = value.strip()
+# Replaced by kaggle_serve/push.py from secrets.local. Never commit real values.
+ACCESS_TOKEN = "___SPRITELAB_TOKEN___"
+NTFY_TOPIC = "___SPRITELAB_NTFY___"
 WORK = Path("/kaggle/working")
 REPO_DIR = WORK / "spritelab"
+
+if ACCESS_TOKEN.startswith("___") or NTFY_TOPIC.startswith("___"):
+    raise SystemExit(
+        "Secrets were not injected. Push with: python3 kaggle_serve/push.py"
+    )
 
 subprocess.run(
     [
@@ -73,10 +67,7 @@ _peft_torchao.is_torchao_available = lambda: False
 
 sys.path.insert(0, str(REPO_DIR))
 os.environ.setdefault("SPRITELAB_WARMUP", "1")
-if ACCESS_TOKEN:
-    os.environ["SPRITELAB_TOKEN"] = ACCESS_TOKEN
-else:
-    raise SystemExit("Missing TOKEN in secrets.local. Refusing to start an open server.")
+os.environ["SPRITELAB_TOKEN"] = ACCESS_TOKEN
 
 import uvicorn
 from app import app, runtime
@@ -137,6 +128,7 @@ def _tunnel():
             print(f"SPRITELAB URL: {url}", flush=True)
             print(banner, flush=True)
             (WORK / "server_info.json").write_text(json.dumps({"url": url}))
+            # Publish URL only. Token stays off ntfy.
             _notify(url)
             break
     for _ in process.stdout:
