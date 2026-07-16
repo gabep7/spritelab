@@ -91,7 +91,8 @@
           <img id="result-image" alt="Generated sprite" hidden>
           <div id="loader" class="loader" hidden>
             <span></span><span></span><span></span><span></span>
-            <strong>RENDERING</strong>
+            <strong id="loader-label">RENDERING</strong>
+            <div id="progress-track" class="progress-track" hidden><div id="progress-fill"></div></div>
           </div>
         </div>
         <div class="output-actions">
@@ -106,6 +107,10 @@
           <div><dt>MODEL</dt><dd>SDXL + PIXEL XL</dd></div>
           <div><dt>EXPORT</dt><dd id="export-size">128 × 128</dd></div>
         </dl>
+        <div id="history-section" class="history" hidden>
+          <h3>RECENT SPRITES</h3>
+          <div id="history-grid" class="history-grid"></div>
+        </div>
       </section>
     </section>
   </main>

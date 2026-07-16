@@ -159,6 +159,9 @@ textarea:focus, input:focus, select:focus { box-shadow: 4px 4px 0 var(--blue); }
 .loader span:nth-child(4) { animation-delay: 0.45s; }
 @keyframes bounce { to { transform: translateY(-8px); background: var(--blue); } }
 
+.progress-track { grid-column: 1 / -1; width: 180px; height: 10px; margin-top: 10px; border: 2px solid var(--ink); background: white; }
+#progress-fill { width: 0%; height: 100%; background: var(--orange); transition: width 0.4s linear; }
+
 .output-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 16px; }
 .view-switch { display: flex; }
 .view-switch button { padding: 9px 12px; }
@@ -170,6 +173,13 @@ textarea:focus, input:focus, select:focus { box-shadow: 4px 4px 0 var(--blue); }
 .output-meta div { min-width: 0; }
 .output-meta dt { margin-bottom: 5px; color: var(--muted); font-size: 9px; font-weight: 900; letter-spacing: 0.08em; }
 .output-meta dd { margin: 0; overflow: hidden; text-overflow: ellipsis; font-size: 10px; font-weight: 900; white-space: nowrap; }
+
+.history { margin-top: 28px; padding-top: 18px; border-top: 1px solid #9aa1a9; }
+.history h3 { margin: 0 0 10px; color: var(--muted); font-size: 9px; font-weight: 900; letter-spacing: 0.08em; }
+.history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 7px; }
+.history-item { padding: 4px; border: 2px solid var(--line); background: white; cursor: pointer; }
+.history-item:hover { box-shadow: 3px 3px 0 var(--blue); transform: translate(-1px, -1px); }
+.history-item img { display: block; width: 100%; aspect-ratio: 1; object-fit: contain; image-rendering: pixelated; }
 
 footer { min-height: 54px; padding: 0 clamp(20px, 4vw, 64px); display: flex; align-items: center; justify-content: space-between; gap: 20px; border-top: 2px solid var(--line); color: var(--paper); background: var(--ink); font-size: 10px; letter-spacing: 0.08em; }
 

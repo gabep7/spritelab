@@ -44,6 +44,19 @@ CLI:
 python3 -m scripts.generate_sprite "blue slime with a gold crown" --mode quality --size 128
 ```
 
+Optional: `SPRITELAB_WARMUP=1` loads the model at startup instead of on the first request. Generations are kept in `generated/` with a history gallery in the UI.
+
+## Kaggle server
+
+No local GPU needed. Start a T4-backed session that serves the same web app through a public tunnel:
+
+```bash
+python3 -m kaggle kernels push -p kaggle_serve
+python3 -m kaggle kernels logs gabrielep09/spritelab-server
+```
+
+Open the `SPRITELAB URL` printed in the log (a `trycloudflare.com` address). The model loads once per session; after that each sprite takes seconds. The server shuts itself down after 30 minutes without requests so it does not burn GPU quota. Note that anyone with the URL can use the session, so do not share it.
+
 ## Kaggle batch jobs
 
 Edit `JOBS`, `MODE`, `SEEDS`, and `EXPORT_SIZE` in `kaggle_sdxl/generate.py`, then:
@@ -71,6 +84,7 @@ scripts/generate_sprite.py  SDXL pipeline
 scripts/sprite_export.py    Transparent crop and export
 scripts/prompt_templates.py Shared prompts and presets
 kaggle_sdxl/                Batch and benchmark scripts
+kaggle_serve/               Kaggle-hosted web app server
 assets/                     Logo and showcase images
 tests/                      Unit tests
 ```

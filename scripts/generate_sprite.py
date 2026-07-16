@@ -60,7 +60,7 @@ def load_pipeline(
     return pipeline, device
 
 
-def generate_image(pipeline, device, description, seed=42, mode="quality", category=None):
+def generate_image(pipeline, device, description, seed=42, mode="quality", category=None, on_step=None):
     if mode == "fast":
         pipeline.scheduler = pipeline.fast_scheduler
         pipeline.set_adapters(["lcm", "pixel"], adapter_weights=[1.0, 1.2])
@@ -76,6 +76,13 @@ def generate_image(pipeline, device, description, seed=42, mode="quality", categ
 
     prompt = build_prompt(description, category=category)
     generator_device = "cuda" if device == "cuda" else "cpu"
+
+    step_callback = None
+    if on_step is not None:
+        def step_callback(_pipe, step, _timestep, callback_kwargs):
+            on_step(step + 1, steps)
+            return callback_kwargs
+
     return pipeline(
         prompt=prompt,
         negative_prompt=NEGATIVE_PROMPT,
@@ -84,6 +91,7 @@ def generate_image(pipeline, device, description, seed=42, mode="quality", categ
         num_inference_steps=steps,
         guidance_scale=guidance,
         generator=torch.Generator(device=generator_device).manual_seed(seed),
+        callback_on_step_end=step_callback,
     ).images[0]
 
 
